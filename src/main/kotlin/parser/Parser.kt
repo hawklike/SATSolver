@@ -41,7 +41,7 @@ class Parser(private val base: String) {
             if(literal.isNotBlank()) {
                 literal.toInt().let { value ->
                     if(value != Character.getNumericValue(END_OF_LINE)) {
-                        acc.add(Literal(value < 0, formula.variables[abs(value) - 1]))
+                        acc.add(Literal(value < 0, abs(value) - 1))
                     }
                 }
             }
