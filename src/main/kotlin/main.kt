@@ -1,3 +1,6 @@
+import parser.Parser
+
 fun main(args: Array<String>) {
-    println("Hello World!")
+    val parser = Parser("../wuf-M1/test")
+    parser.parse("sample.txt")
 }

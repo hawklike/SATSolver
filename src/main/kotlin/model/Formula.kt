@@ -1,5 +1,10 @@
 package model
 
-data class Formula(val clauses: MutableList<Clause>, val variables: MutableList<Variable>) {
-    fun isFeasible() = clauses.none { !it.isFeasible() }
+class Formula {
+    val variables: MutableList<Variable> = mutableListOf()
+    val clauses: MutableList<Clause> = mutableListOf()
+
+    fun isFeasible() =
+        if(clauses.isEmpty()) throw UnsupportedOperationException("Clauses are empty")
+        else clauses.none { !it.isFeasible() }
 }
