@@ -1,7 +1,8 @@
 package solver
 
+import Configuration
 import model.Formula
-import java.util.concurrent.ThreadLocalRandom
+import util.Randomizer
 import kotlin.math.exp
 import kotlin.random.Random
 
@@ -10,6 +11,7 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
     private val minTemperature = config.minTemp
     private val coolingCoefficient = config.coolingCoefficient
     private val equilibrium = config.innerCycle
+    private val strategy = config.strategy
 
     private var state = formula
     private var bestState = Formula()
@@ -31,9 +33,8 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
     }
 
     private fun createNewState(): Formula {
-        val position = ThreadLocalRandom.current().nextInt(0, state.variables.size)
         val newState = Formula(state)
-        newState.toggleVariable(position)
+        toggleVariables(newState)
 
         val newSatisfiableClauses = newState.satisfiableClauses
         val oldSatisfiableClauses = state.satisfiableClauses
@@ -45,6 +46,21 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
 
         return if(isNewStateAccepted(newSatisfiableClauses, oldSatisfiableClauses)) newState
         else state
+    }
+
+    private fun toggleVariables(state: Formula) {
+        val position = Randomizer.nextInt(state.variables.size)
+        when(strategy) {
+            SimulatedAnnealingConfig.GeneratingNewState.TOGGLE_ONE -> {
+                state.toggleVariable(position)
+            }
+            SimulatedAnnealingConfig.GeneratingNewState.TOGGLE_N -> {
+                state.toggleSomeVariables(state.variables.size / Configuration.toggleCount)
+            }
+            SimulatedAnnealingConfig.GeneratingNewState.TOGGLE_ALL -> {
+                state.toggleAllVariables(Configuration.generatingProbability)
+            }
+        }
     }
 
     private fun isNewStateAccepted(new: Int, current: Int): Boolean {
