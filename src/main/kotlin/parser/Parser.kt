@@ -22,9 +22,16 @@ class Parser(private val base: String) {
             ?: throw FileNotFoundException("base $base not found")
     }
 
-    private fun parseFormula(file: File): Formula {
+    fun parseWithSolutions(solutions: Map<String, Int>): List<Formula> {
+        return InputReader(base).getFilesWithSolutions(solutions)?.map { file ->
+            val optimum = solutions[file.getInstanceId()]
+            parseFormula(file, optimum)
+        } ?: throw FileNotFoundException("base $base not found")
+    }
+
+    private fun parseFormula(file: File, optimum: Int? = null): Formula {
         println("Parsing file ${file.name}")
-        val formula = Formula()
+        val formula = Formula(file.nameWithoutExtension, optimum)
         file.forEachLine { line ->
             when(line.trim().first()) {
                 WEIGHT -> formula.variables.addAll(parseWeights(line.drop(WEIGHT.toString().length)))

@@ -2,7 +2,7 @@ package model
 
 import util.Randomizer
 
-class Formula() : Comparable<Formula> {
+class Formula(val filename: String, val optimum: Int?) : Comparable<Formula> {
     val variables: MutableList<Variable> = mutableListOf()
     val clauses: MutableList<Clause> = mutableListOf()
 
@@ -22,7 +22,7 @@ class Formula() : Comparable<Formula> {
             else count
         }
 
-    constructor(src: Formula) : this() {
+    constructor(src: Formula) : this(src.filename, src.optimum) {
         src.variables.forEach { this.variables.add(it.copy()) }
         this.clauses.addAll(src.clauses)
     }

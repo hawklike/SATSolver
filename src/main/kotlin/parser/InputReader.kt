@@ -13,4 +13,10 @@ class InputReader(private val base: String) {
     fun getFile(name: String) = File(base).listFiles()?.find { it.name == name }
 
     fun getAllFiles() = getFiles(Regex(".*"))
+
+    fun getFilesWithSolutions(solutions: Map<String, Int>) = File(base).listFiles { file ->
+        solutions.containsKey(file.getInstanceId())
+    }
 }
+
+fun File.getInstanceId() = nameWithoutExtension.split("-")[1]

@@ -12,4 +12,10 @@ data class SimulatedAnnealingConfig(
         TOGGLE_N,
         TOGGLE_ALL
     }
+
+    override fun toString(): String {
+        return "${initialTemp.toString().replace(".", ",")}-${
+            minTemp.toString().replace(".", ",")
+        }-${coolingCoefficient.toString().replace(".", ",")}-$innerCycle"
+    }
 }
