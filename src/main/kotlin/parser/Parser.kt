@@ -10,21 +10,28 @@ import kotlin.math.abs
 
 class Parser(private val base: String) {
 
-    private val formula = Formula()
-
     fun parse(filename: String): Formula {
         return InputReader(base).getFile(filename)?.let { parseFormula(it) }
             ?: throw FileNotFoundException("$base/$filename not found")
     }
 
+    fun parseAll(nFiles: Int) = parseAll().take(nFiles)
+
+    fun parseAll(): List<Formula> {
+        return InputReader(base).getAllFiles()?.map { parseFormula(it) }
+            ?: throw FileNotFoundException("base $base not found")
+    }
+
     private fun parseFormula(file: File): Formula {
+        println("Parsing file ${file.name}")
+        val formula = Formula()
         file.forEachLine { line ->
             when(line.trim().first()) {
                 WEIGHT -> formula.variables.addAll(parseWeights(line.drop(WEIGHT.toString().length)))
                 !in listOf(COMMENT, PRINT) -> formula.clauses.add(parseClause(line))
             }
         }
-        return this.formula
+        return formula
     }
 
     private fun parseWeights(line: String): List<Variable> {

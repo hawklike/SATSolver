@@ -11,4 +11,6 @@ class InputReader(private val base: String) {
     fun getFile(pattern: Regex) = File(base).listFiles()?.find { it.name.matches(pattern) }
 
     fun getFile(name: String) = File(base).listFiles()?.find { it.name == name }
+
+    fun getAllFiles() = getFiles(Regex(".*"))
 }

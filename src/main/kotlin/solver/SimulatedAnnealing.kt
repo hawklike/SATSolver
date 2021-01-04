@@ -2,7 +2,9 @@ package solver
 
 import Configuration
 import model.Formula
+import model.SATResult
 import util.Randomizer
+import util.StopwatchCPU
 import kotlin.math.exp
 import kotlin.random.Random
 
@@ -18,7 +20,9 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
 
     private var temperature = initialTemperature
 
-    fun solve(): Int {
+    fun solve(): SATResult {
+        val timer = StopwatchCPU(StopwatchCPU.IN_MILLISECONDS)
+
         while(temperature > minTemperature) {
             var innerCycle = 0
 
@@ -29,7 +33,10 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
             temperature *= coolingCoefficient
         }
 
-        return bestState.totalWeight
+        val time = timer.elapsedTime()
+        with(bestState) {
+            return SATResult(totalWeight, satisfiableClauses, isSatisfiable, time)
+        }
     }
 
     private fun createNewState(): Formula {
