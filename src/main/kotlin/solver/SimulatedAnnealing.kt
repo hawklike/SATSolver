@@ -14,17 +14,15 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
     private var state = formula
     private var bestState = Formula()
 
-    fun solve(): Int {
-        var temperature = initialTemperature
+    private var temperature = initialTemperature
 
+    fun solve(): Int {
         while(temperature > minTemperature) {
             var innerCycle = 0
 
             while(innerCycle++ < equilibrium) {
-                state = createNewState(temperature)
-                if(state.isSatisfiable && state.totalWeight > bestState.totalWeight) {
-                    bestState = state
-                }
+                state = createNewState()
+                if(state > bestState) bestState = state
             }
             temperature *= coolingCoefficient
         }
@@ -32,14 +30,25 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
         return bestState.totalWeight
     }
 
-    private fun createNewState(temperature: Double): Formula {
+    private fun createNewState(): Formula {
         val position = ThreadLocalRandom.current().nextInt(0, state.variables.size)
         val newState = Formula(state)
-
         newState.toggleVariable(position)
 
-        val delta = newState.totalWeight - state.totalWeight
-        return if(Random.nextDouble() < exp(delta / temperature)) newState
+        val newSatisfiableClauses = newState.satisfiableClauses
+        val oldSatisfiableClauses = state.satisfiableClauses
+
+        if(newSatisfiableClauses == oldSatisfiableClauses) {
+            return if(isNewStateAccepted(newState.totalWeight, state.totalWeight)) newState
+            else state
+        }
+
+        return if(isNewStateAccepted(newSatisfiableClauses, oldSatisfiableClauses)) newState
         else state
+    }
+
+    private fun isNewStateAccepted(new: Int, current: Int): Boolean {
+        if(new > current) return true
+        return Random.nextDouble() < exp((new - current) / temperature)
     }
 }
