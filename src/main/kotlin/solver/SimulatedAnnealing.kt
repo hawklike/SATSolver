@@ -44,7 +44,8 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
 
         val time = timer.elapsedTime()
         with(bestState) {
-            println("time: $time ms, totalWeight: $totalWeight, clauses: $satisfiableClauses")
+            println(filename)
+            println("time: $time ms, totalWeight: $totalWeight, optimum: $optimum, clauses: $satisfiableClauses")
             return SATResult(totalWeight, satisfiableClauses, isSatisfiable, time)
         }
     }

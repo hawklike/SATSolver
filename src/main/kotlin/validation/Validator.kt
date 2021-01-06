@@ -2,6 +2,7 @@ package validation
 
 import Configuration
 import model.Formula
+import model.SATResult
 import parser.OutputWriter
 import parser.Parser
 import parser.SolutionReader
@@ -9,6 +10,8 @@ import solver.SimulatedAnnealing
 import solver.SimulatedAnnealingConfig
 import solver.SimulatedAnnealingConfig.GeneratingNewState
 import solver.SimulatedAnnealingConfig.GeneratingNewState.*
+import kotlin.math.abs
+import kotlin.math.max
 
 class Validator {
 
@@ -59,8 +62,60 @@ class Validator {
         }.solve()
     }
 
-    fun solve(config: SimulatedAnnealingConfig, formula: Formula) {
-        SimulatedAnnealing(config, formula).solve()
+    fun testResults(config: SimulatedAnnealingConfig, formulasWithSolutions: List<Formula>) {
+        formulasWithSolutions.forEach { formula ->
+            val res = SimulatedAnnealing(config, formula).solve()
+            val ok = if(res.totalWeight == formula.optimum) "OK" else "FAIL"
+            println("${formula.optimum} vs ${res.totalWeight} $ok")
+        }
+    }
+
+    fun solve(config: SimulatedAnnealingConfig, formula: Formula): SATResult {
+        return SimulatedAnnealing(config, formula).solve()
+    }
+
+    fun testEquilibrium(formulas: List<Formula>) {
+        testEquilibrium(formulas[1].variables.size * 4 / 5, formulas)
+        testEquilibrium(10, formulas)
+        testEquilibrium(25, formulas)
+        testEquilibrium(30, formulas)
+        testEquilibrium(50, formulas)
+        testEquilibrium(75, formulas)
+        testEquilibrium(100, formulas)
+        testEquilibrium(200, formulas)
+    }
+
+    private fun testEquilibrium(innerCycle: Int, formulas: List<Formula>) {
+        val config = SimulatedAnnealingConfig(250.0, 0.2, 0.995, innerCycle)
+
+        val epsilons = mutableListOf<Double>()
+        val time = mutableListOf<Double>()
+        val allSatisfied = mutableListOf<Boolean>()
+
+        formulas.forEach { formula ->
+            val res = solve(config, formula)
+            formula.optimum?.let { epsilons.add(calculateEpsilon(it, res.totalWeight)) }
+            time.add(res.time)
+            allSatisfied.add(res.allSatisfied)
+
+            println(res)
+            println("-------------------------")
+        }
+
+        val stats = """
+            avg time in ms: ${time.average()}
+            avg epsilon: ${epsilons.average()}
+            satisfied probability: ${allSatisfied.sumBy { if(it) 1 else 0 } / formulas.size.toDouble()}
+        """.trimIndent()
+
+        OutputWriter("${Configuration.baseOutput}/equilibrium").appendToEnd("$innerCycle.txt", stats)
+    }
+
+    private fun calculateEpsilon(reference: Int, computed: Int): Double {
+        return (abs(reference - computed) / max(reference, computed).toDouble()).let {
+            if(it.isNaN()) 0.0
+            else it
+        }
     }
 
     companion object {
