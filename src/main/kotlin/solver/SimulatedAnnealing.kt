@@ -37,7 +37,7 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
                 state = createNewState()
                 if(state > bestState) bestState = state
 
-                progress?.invoke(state.satisfiableClauses, state.totalWeight)
+                progress?.invoke(bestState.satisfiableClauses, bestState.totalWeight)
             }
             temperature *= coolingCoefficient
         }
@@ -58,11 +58,11 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
         val oldSatisfiableClauses = state.satisfiableClauses
 
         if(newSatisfiableClauses == oldSatisfiableClauses) {
-            return if(isNewStateAccepted(newState.totalWeight, state.totalWeight)) newState
+            return if(isNewStateAccepted(newState.totalWeight, state.totalWeight, 100)) newState
             else state
         }
 
-        return if(isNewStateAccepted(newSatisfiableClauses, oldSatisfiableClauses)) newState
+        return if(isNewStateAccepted(newSatisfiableClauses, oldSatisfiableClauses, 1)) newState
         else state
     }
 
@@ -78,11 +78,13 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
             SimulatedAnnealingConfig.GeneratingNewState.TOGGLE_ALL -> {
                 state.toggleAllVariables(Configuration.generatingProbability)
             }
+            SimulatedAnnealingConfig.GeneratingNewState.TOGGLE_ONE_SMART ->
+                state.toggleVariableSmart(position)
         }
     }
 
-    private fun isNewStateAccepted(new: Int, current: Int): Boolean {
+    private fun isNewStateAccepted(new: Int, current: Int, coef: Int): Boolean {
         if(new > current) return true
-        return Random.nextDouble() < exp((new - current) / temperature)
+        return Random.nextDouble() < exp((new - current) / coef * temperature)
     }
 }

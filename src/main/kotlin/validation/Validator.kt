@@ -15,14 +15,27 @@ import kotlin.math.max
 
 class Validator {
 
+    fun testAdaptiveMechanism(formulas: List<Formula>) {
+        testGeneratingNewState(TOGGLE_ONE, formulas, SimulatedAnnealingConfig(250.0, 0.3, 0.995, 60, TOGGLE_ONE))
+        testGeneratingNewState(
+            TOGGLE_ONE_SMART,
+            formulas,
+            SimulatedAnnealingConfig(250.0, 0.3, 0.995, 60, TOGGLE_ONE_SMART)
+        )
+    }
+
     fun testGeneratingNewState(formulas: List<Formula>) {
         testGeneratingNewState(TOGGLE_ONE, formulas)
         testGeneratingNewState(TOGGLE_ALL, formulas)
         testGeneratingNewState(TOGGLE_N, formulas)
     }
 
-    private fun testGeneratingNewState(strategy: GeneratingNewState, formulas: List<Formula>) {
-        val config = SimulatedAnnealingConfig(1000.0, 1.0, 0.995, 30, strategy)
+    private fun testGeneratingNewState(
+        strategy: GeneratingNewState,
+        formulas: List<Formula>,
+        _config: SimulatedAnnealingConfig? = null
+    ) {
+        val config = _config ?: SimulatedAnnealingConfig(1000.0, 1.0, 0.995, 30, strategy)
 
         val weight = mutableListOf<Int>()
         val satisfiedClauses = mutableListOf<Int>()
@@ -47,17 +60,17 @@ class Validator {
             satisfied probability: ${allSatisfied.sumBy { if(it) 1 else 0 } / formulas.size.toDouble()}
         """.trimIndent()
 
-        OutputWriter("${Configuration.baseOutput}/new_state_generating/all").appendToEnd(
-            "${config.strategy.name}.txt",
+        OutputWriter("${Configuration.baseOutput}/adaptive_mechanism").appendToEnd(
+            "${config.strategy.name}_100.txt",
             stats
         )
     }
 
     fun showProgress(config: SimulatedAnnealingConfig, formula: Formula) {
         SimulatedAnnealing(config, formula).withProgress { clauses, weight ->
-            OutputWriter("${Configuration.baseOutput}/progress").apply {
-                appendToEnd("${config}_clauses_${formula.filename}.txt", clauses)
-                appendToEnd("${config}_weight_${formula.filename}.txt", weight)
+            OutputWriter("${Configuration.baseOutput}/progress/smarter/toggleVariable").apply {
+                appendToEnd("${config}_clauses_${formula.filename}_smarter.txt", clauses)
+                appendToEnd("${config}_weight_${formula.filename}_smarter.txt", weight)
             }
         }.solve()
     }
@@ -125,7 +138,7 @@ class Validator {
         fun loadFormulas(base: String, count: Int) =
             Parser(base).parseAll(count)
 
-        fun loadAllFormulas(base: String) =
+        fun loadFormulas(base: String) =
             Parser(base).parseAll()
 
         fun loadFormulasWithSolution(base: String, solutionBase: String, solutionsFilename: String) =

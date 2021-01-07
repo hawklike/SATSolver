@@ -9,6 +9,7 @@ data class SimulatedAnnealingConfig(
 ) {
     enum class GeneratingNewState {
         TOGGLE_ONE,
+        TOGGLE_ONE_SMART,
         TOGGLE_N,
         TOGGLE_ALL
     }

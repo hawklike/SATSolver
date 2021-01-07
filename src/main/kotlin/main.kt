@@ -1,4 +1,3 @@
-import solver.SimulatedAnnealingConfig
 import validation.Validator
 
 fun main() {
@@ -10,10 +9,14 @@ fun main() {
 //        SimulatedAnnealingConfig(250.0, 0.3, 0.995, 40),
 //        Validator.loadFormula(Configuration.baseInput50, "wuf50-0123.mwcnf")
 //    )
-//    validator.showProgress(
-//        SimulatedAnnealingConfig(250.0, 0.3, 0.995, 60),
-//        Validator.loadFormula(Configuration.baseInput75, "wuf75-01.mwcnf")
-//    )
+//    repeat(10) {
+//        validator.solve(
+//            SimulatedAnnealingConfig(250.0, 0.3, 0.995, 60, SimulatedAnnealingConfig.GeneratingNewState.TOGGLE_ONE_SMART),
+//            Validator.loadFormula(Configuration.baseInput75, "wuf75-01.mwcnf")
+//        )
+//    }
+
+    validator.testAdaptiveMechanism(Validator.loadFormulas(Configuration.baseInputA100, 100))
 
 //    repeat(1) {
 //        validator.solve( SimulatedAnnealingConfig(250.0, 0.2, 0.995, 40),
@@ -22,9 +25,9 @@ fun main() {
 //            Validator.loadFormula(Configuration.baseInput75, "wuf75-01.mwcnf"))
 //    }
 
-    val formulas =
-        Validator.loadFormulasWithSolution(Configuration.baseInput20, Configuration.baseInput, "wuf20-78-M-opt.dat")
-    validator.testResults(SimulatedAnnealingConfig(250.0, 0.3, 0.995, 16), formulas)
+//    val formulas =
+//        Validator.loadFormulasWithSolution(Configuration.baseInput20, Configuration.baseInput, "wuf20-78-M-opt.dat")
+//    validator.testResults(SimulatedAnnealingConfig(250.0, 0.3, 0.995, 16), formulas)
 
 //    val formulas =
 //        Validator.loadFormulasWithSolution(Configuration.baseInput50, Configuration.baseInput, "wuf50-201-M-opt.dat")
