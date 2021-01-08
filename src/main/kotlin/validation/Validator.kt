@@ -16,12 +16,10 @@ import kotlin.math.max
 class Validator {
 
     fun testAdaptiveMechanism(formulas: List<Formula>) {
-        testGeneratingNewState(TOGGLE_ONE, formulas, SimulatedAnnealingConfig(250.0, 0.3, 0.995, 60, TOGGLE_ONE))
-        testGeneratingNewState(
-            TOGGLE_ONE_SMART,
-            formulas,
-            SimulatedAnnealingConfig(250.0, 0.3, 0.995, 60, TOGGLE_ONE_SMART)
-        )
+        val dumb = TOGGLE_ONE
+        val smart = TOGGLE_ONE_SMART
+        testGeneratingNewState(dumb, formulas, SimulatedAnnealingConfig(250.0, 0.3, 0.995, 60, dumb))
+        testGeneratingNewState(smart, formulas, SimulatedAnnealingConfig(250.0, 0.3, 0.995, 60, smart))
     }
 
     fun testGeneratingNewState(formulas: List<Formula>) {
@@ -61,21 +59,21 @@ class Validator {
         """.trimIndent()
 
         OutputWriter("${Configuration.baseOutput}/adaptive_mechanism").appendToEnd(
-            "${config.strategy.name}_100.txt",
+            "${config.strategy.name}_100_reset.txt",
             stats
         )
     }
 
     fun showProgress(config: SimulatedAnnealingConfig, formula: Formula) {
         SimulatedAnnealing(config, formula).withProgress { clauses, weight ->
-            OutputWriter("${Configuration.baseOutput}/progress/smarter/toggleVariable").apply {
-                appendToEnd("${config}_clauses_${formula.filename}_smarter.txt", clauses)
-                appendToEnd("${config}_weight_${formula.filename}_smarter.txt", weight)
+            OutputWriter("${Configuration.baseOutput}/progress/final").apply {
+                appendToEnd("${config}_clauses_${formula.filename}.txt", clauses)
+                appendToEnd("${config}_weight_${formula.filename}.txt", weight)
             }
         }.solve()
     }
 
-    fun testResults(config: SimulatedAnnealingConfig, formulasWithSolutions: List<Formula>) {
+    fun compareWithResults(config: SimulatedAnnealingConfig, formulasWithSolutions: List<Formula>) {
         formulasWithSolutions.forEach { formula ->
             val res = SimulatedAnnealing(config, formula).solve()
             val ok = if(res.totalWeight == formula.optimum) "OK" else "FAIL"
@@ -83,8 +81,21 @@ class Validator {
         }
     }
 
+    fun getAverageEpsilon(config: SimulatedAnnealingConfig, formulasWithSolutions: List<Formula>) {
+        val epsilons = mutableListOf<Double>()
+        formulasWithSolutions.forEach { formula ->
+            val res = SimulatedAnnealing(config, formula).solve()
+            epsilons.add(calculateEpsilon(formula.optimum, res.totalWeight))
+        }
+        OutputWriter("${Configuration.baseOutput}/epsilon").appendToEnd("50", "${epsilons.average()}")
+    }
+
     fun solve(config: SimulatedAnnealingConfig, formula: Formula): SATResult {
         return SimulatedAnnealing(config, formula).solve()
+    }
+
+    fun solve(config: SimulatedAnnealingConfig, formulas: List<Formula>) {
+        formulas.forEach { solve(config, it) }
     }
 
     fun testEquilibrium(formulas: List<Formula>) {
@@ -107,7 +118,7 @@ class Validator {
 
         formulas.forEach { formula ->
             val res = solve(config, formula)
-            formula.optimum?.let { epsilons.add(calculateEpsilon(it, res.totalWeight)) }
+            epsilons.add(calculateEpsilon(formula.optimum, res.totalWeight))
             time.add(res.time)
             allSatisfied.add(res.allSatisfied)
 
@@ -124,7 +135,8 @@ class Validator {
         OutputWriter("${Configuration.baseOutput}/equilibrium").appendToEnd("$innerCycle.txt", stats)
     }
 
-    private fun calculateEpsilon(reference: Int, computed: Int): Double {
+    private fun calculateEpsilon(reference: Int?, computed: Int): Double {
+        if(reference == null) return 0.0
         return (abs(reference - computed) / max(reference, computed).toDouble()).let {
             if(it.isNaN()) 0.0
             else it

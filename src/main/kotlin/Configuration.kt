@@ -9,4 +9,5 @@ object Configuration {
     const val baseInputA100 = "$baseInputA/wuf100-430-A1"
     const val generatingProbability = 5
     const val toggleCount = 5
+    const val resets = 3
 }

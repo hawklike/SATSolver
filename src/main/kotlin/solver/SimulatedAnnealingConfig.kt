@@ -5,7 +5,7 @@ data class SimulatedAnnealingConfig(
     val minTemp: Double,
     val coolingCoefficient: Double,
     val innerCycle: Int,
-    val strategy: GeneratingNewState = GeneratingNewState.TOGGLE_ONE
+    val strategy: GeneratingNewState = GeneratingNewState.TOGGLE_ONE_SMART
 ) {
     enum class GeneratingNewState {
         TOGGLE_ONE,

@@ -12,13 +12,13 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
     private val initialTemperature = config.initialTemp
     private val minTemperature = config.minTemp
     private val coolingCoefficient = config.coolingCoefficient
-    private val equilibrium = config.innerCycle
     private val strategy = config.strategy
 
     private var state = formula
     private var bestState = Formula(formula.filename, formula.optimum)
 
     private var temperature = initialTemperature
+    private var equilibrium = config.innerCycle
 
     private var progress: ((clauses: Int, weight: Int) -> Unit)? = null
 
@@ -29,18 +29,29 @@ class SimulatedAnnealing(config: SimulatedAnnealingConfig, formula: Formula) {
 
     fun solve(): SATResult {
         val timer = StopwatchCPU(StopwatchCPU.IN_MILLISECONDS)
+        var resets = 0
 
-        while(temperature > minTemperature) {
-            var innerCycle = 0
+        fun solveInner() {
+            while(temperature > minTemperature) {
+                var innerCycle = 0
 
-            while(innerCycle++ < equilibrium) {
-                state = createNewState()
-                if(state > bestState) bestState = state
+                while(innerCycle++ < equilibrium) {
+                    state = createNewState()
+                    if(state > bestState) bestState = state
 
-                progress?.invoke(bestState.satisfiableClauses, bestState.totalWeight)
+                    progress?.invoke(bestState.satisfiableClauses, bestState.totalWeight)
+                }
+                temperature *= coolingCoefficient
             }
-            temperature *= coolingCoefficient
+
+            if(!bestState.isSatisfiable && resets++ < Configuration.resets) {
+                temperature = initialTemperature
+                equilibrium = (equilibrium * 1.25).toInt()
+                solveInner()
+            }
         }
+
+        solveInner()
 
         val time = timer.elapsedTime()
         with(bestState) {
